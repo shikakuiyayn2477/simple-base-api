@@ -1,11 +1,16 @@
-const express = require('express');
-const { GoogleGenAI } = require("@google/genai");
-const router = express.Router();
+// api/ai/gemini.js (converted to Hono-compatible module)
+// Export default handler(c)
+import { GoogleGenAI } from '@google/genai';
 
-router.get('/', async (req, res) => {
-  const text = req.query.text;
-  const apikey = req.query.apikey;
-  if (!text || !apikey) return res.status(400).json({ error: "Missing 'text' or 'apikey' parameter" });
+export default async function handler(c) {
+  const url = new URL(c.req.url);
+  const text = url.searchParams.get('text');
+  const apikey = url.searchParams.get('apikey');
+
+  if (!text || !apikey) {
+    return c.json({ error: "Missing 'text' or 'apikey' parameter" }, 400);
+  }
+
   try {
     const ai = new GoogleGenAI({ apiKey: `${apikey}` });
     const response = await ai.models.generateContent({
@@ -13,10 +18,8 @@ router.get('/', async (req, res) => {
       contents: `${text}`
     });
     const replyText = response?.text ?? response?.output?.[0]?.content ?? JSON.stringify(response);
-    return res.json({ text: replyText });
+    return c.json({ text: replyText });
   } catch (e) {
-    return res.status(500).json({ error: e.message });
+    return c.json({ error: e.message || 'Internal error' }, 500);
   }
-});
-
-module.exports = router;
+}

@@ -1,20 +1,17 @@
-const express = require('express');
-const router = express.Router();
-
-router.get('/', async (req, res) => {
-  const url = req.query.url;
-  if (!url) return res.status(400).json({ error: "Missing 'url' parameter" });
+// api/downloader/videy.js (converted)
+export default async function handler(c) {
+  const urlObj = new URL(c.req.url);
+  const url = urlObj.searchParams.get('url');
+  if (!url) return c.json({ error: "Missing 'url' parameter" }, 400);
   try {
-    const videoId = url.split("=")[1];
-    if (!videoId) return res.status(400).json({ error: "Invalid 'url' parameter" });
+    const videoId = url.split('=')[1];
+    if (!videoId) return c.json({ error: "Invalid 'url' parameter" }, 400);
     const anunyah = `https://cdn.videy.co/${videoId}.mp4`;
     const data = {
       fileurl: anunyah
     };
-    return res.json(data);
+    return c.json(data);
   } catch (e) {
-    return res.status(500).json({ error: e.message });
+    return c.json({ error: e.message || 'Internal error' }, 500);
   }
-});
-
-module.exports = router;
+}
