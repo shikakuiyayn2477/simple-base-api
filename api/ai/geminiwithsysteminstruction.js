@@ -1,12 +1,16 @@
-const express = require('express');
-const { GoogleGenAI } = require("@google/genai");
-const router = express.Router();
+// api/ai/geminiwithsysteminstruction.js (converted)
+import { GoogleGenAI } from '@google/genai';
 
-router.get('/', async (req, res) => {
-  const text = req.query.text;
-  const system = req.query.system;
-  const apikey = req.query.apikey;
-  if (!text || !system || !apikey) return res.status(400).json({ error: "Missing 'text' or 'system' parameter" });
+export default async function handler(c) {
+  const url = new URL(c.req.url);
+  const text = url.searchParams.get('text');
+  const system = url.searchParams.get('system');
+  const apikey = url.searchParams.get('apikey');
+
+  if (!text || !system || !apikey) {
+    return c.json({ error: "Missing 'text' or 'system' or 'apikey' parameter" }, 400);
+  }
+
   try {
     const ai = new GoogleGenAI({ apiKey: `${apikey}` });
     const response = await ai.models.generateContent({
@@ -16,12 +20,8 @@ router.get('/', async (req, res) => {
         systemInstruction: `${system}`,
       },
     });
-    const data = {
-      text: response.text
-    };
-    return res.json(data);
+    return c.json({ text: response?.text ?? null });
   } catch (e) {
-    return res.status(500).json({ error: e.message });
+    return c.json({ error: e.message || 'Internal error' }, 500);
   }
-});
-module.exports = router;
+}
