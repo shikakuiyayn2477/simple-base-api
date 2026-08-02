@@ -36,30 +36,31 @@ async function sendFile(c, relPath, contentType) {
 }
 
 app.get('/script.js', async (c) => {
-  const filePath = join(process.cwd(), 'script.js')
-  const content = await readFile(filePath, 'utf-8')
+  const filePath = path.join(process.cwd(), 'script.js');
+  const content = await fs.promises.readFile(filePath, 'utf-8');
   
   return c.text(content, 200, {
     'Content-Type': 'application/javascript'
-  })
-})
-app.get('/styles.css', async (c) => {
-  const filePath = join(process.cwd(), 'styles.css')
-  const content = await readFile(filePath, 'utf-8')
-  
-  return c.text(content, 200, {
-    'Content-Type': 'application/javascript'
-  })
-})
-app.get('/linkbio.json', async (c) => {
-  const filePath = join(process.cwd(), 'linkbio.json')
-  const content = await readFile(filePath, 'utf-8')
-  
-  return c.text(content, 200, {
-    'Content-Type': 'application/javascript'
-  })
-})
+  });
+});
 
+app.get('/styles.css', async (c) => {
+  const filePath = path.join(process.cwd(), 'styles.css');
+  const content = await fs.promises.readFile(filePath, 'utf-8');
+  
+  return c.text(content, 200, {
+    'Content-Type': 'text/css' 
+  });
+});
+
+app.get('/linkbio.json', async (c) => {
+  const filePath = path.join(process.cwd(), 'linkbio.json');
+  const content = await fs.promises.readFile(filePath, 'utf-8');
+  
+  return c.text(content, 200, {
+    'Content-Type': 'application/json' 
+  });
+});
 /*
  Halaman utama: inline HTML
 */
