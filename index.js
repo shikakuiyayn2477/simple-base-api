@@ -1,6 +1,5 @@
 import { Hono } from 'hono';
 import { serve } from '@hono/node-server';
-import { serveStatic } from '@hono/node-server/serve-static';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -22,45 +21,44 @@ const headerdescription = "Kumpulan API Endpoint yang mungkin berguna.";
 const footer = "© SHIKAKU IYAYN AJAH";
 
 /*
- Static endpoints (menyajikan file-file yang ada di root repo)
+ Serve static files
 */
-async function sendFile(c, relPath, contentType) {
-  try {
-    const full = path.join(process.cwd(), relPath);
-    const body = await fs.promises.readFile(full);
-    c.header('Content-Type', contentType);
-    return c.body(body, 200);
-  } catch (e) {
-    return c.body('Not found', 404);
-  }
-}
-
 app.get('/script.js', async (c) => {
-  const filePath = path.join(process.cwd(), 'script.js');
-  const content = await fs.promises.readFile(filePath, 'utf-8');
-  
-  return c.text(content, 200, {
-    'Content-Type': 'application/javascript'
-  });
+  try {
+    const filePath = path.join(process.cwd(), 'script.js');
+    const content = await fs.promises.readFile(filePath, 'utf-8');
+    return c.text(content, 200, {
+      'Content-Type': 'application/javascript'
+    });
+  } catch (e) {
+    return c.text('File not found', 404);
+  }
 });
 
 app.get('/styles.css', async (c) => {
-  const filePath = path.join(process.cwd(), 'styles.css');
-  const content = await fs.promises.readFile(filePath, 'utf-8');
-  
-  return c.text(content, 200, {
-    'Content-Type': 'text/css' 
-  });
+  try {
+    const filePath = path.join(process.cwd(), 'styles.css');
+    const content = await fs.promises.readFile(filePath, 'utf-8');
+    return c.text(content, 200, {
+      'Content-Type': 'text/css' 
+    });
+  } catch (e) {
+    return c.text('File not found', 404);
+  }
 });
 
 app.get('/linkbio.json', async (c) => {
-  const filePath = path.join(process.cwd(), 'linkbio.json');
-  const content = await fs.promises.readFile(filePath, 'utf-8');
-  
-  return c.text(content, 200, {
-    'Content-Type': 'application/json' 
-  });
+  try {
+    const filePath = path.join(process.cwd(), 'linkbio.json');
+    const content = await fs.promises.readFile(filePath, 'utf-8');
+    return c.text(content, 200, {
+      'Content-Type': 'application/json' 
+    });
+  } catch (e) {
+    return c.text('File not found', 404);
+  }
 });
+
 /*
  Halaman utama: inline HTML
 */
@@ -80,7 +78,7 @@ app.get('/', async (c) => {
     <div id="toast" class="toast">
         <div class="flex items-center gap-3">
             <svg id="toastIcon" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
             </svg>
             <span id="toastMessage" class="font-medium">Action completed</span>
         </div>
@@ -91,7 +89,7 @@ app.get('/', async (c) => {
             <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
         </svg>
         <svg id="theme-toggle-light-icon" class="w-6 h-6 hidden" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-            <path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path>
+            <path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.707.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zm1.414-1.414a1 1 0 00-1.414 0l-.707.707a1 1 0 001.414 1.414l.707-.707a1 1 0 000-1.414zM6.586 12.343a1 1 0 100-1.414 1 1 0 000 1.414z"></path>
         </svg>
     </button>
 
@@ -187,81 +185,107 @@ app.get('/', async (c) => {
 });
 
 /*
- Dynamic mounting untuk semua file di folder api/<category>/<file>.js
- Setiap file harus export default function (c) { ... }
-*/
-async function registerApiRoutes() {
-  const apiPath = path.join(process.cwd(), 'api');
-  try {
-    const categories = await fs.promises.readdir(apiPath);
-    for (const cat of categories) {
-      const catPath = path.join(apiPath, cat);
-      const stat = await fs.promises.stat(catPath);
-      if (!stat.isDirectory()) continue;
-      const files = await fs.promises.readdir(catPath);
-      for (const file of files.filter(f => f.endsWith('.js'))) {
-        const routeName = path.basename(file, '.js');
-        const fullPath = path.join(catPath, file);
-        // dynamic import
-        const mod = await import(`file://${fullPath}`);
-        const handler = mod.default;
-        if (typeof handler === 'function') {
-          app.get(`/api/${cat}/${routeName}`, async (c) => {
-            try {
-              return await handler(c);
-            } catch (e) {
-              return c.json({ error: e.message || 'Internal error' }, 500);
-            }
-          });
-        } else {
-          // fallback: if module exports an object with methods, try GET
-          app.get(`/api/${cat}/${routeName}`, (c) => c.json({ error: 'Handler not implemented' }, 500));
-        }
-      }
-    }
-  } catch (e) {
-    console.error('Error registering API routes:', e);
-  }
-}
-
-/*
  /api/apilist : mengambil daftar file dan membuat list
 */
 app.get('/api/apilist', async (c) => {
-  const apiPath = path.join(process.cwd(), 'api');
   const categories = [];
+  const apiPath = path.join(process.cwd(), 'api');
+  
   try {
     const cats = await fs.promises.readdir(apiPath);
     for (const cat of cats) {
       const catPath = path.join(apiPath, cat);
-      const stat = await fs.promises.stat(catPath).catch(() => null);
-      if (!stat || !stat.isDirectory()) continue;
-      const files = await fs.promises.readdir(catPath);
-      const endpoints = files.filter(f => f.endsWith('.js')).map(f => {
-        return {
-          name: `/${cat}/${f.replace(/\.js$/, '')}`,
-          path: `/api/${cat}/${f.replace(/\.js$/, '')}`,
-          desc: `/${cat}/${f.replace(/\.js$/, '')}`,
-          status: "ready",
-          params: {},
-          methods: ["GET"]
-        };
-      });
-      if (endpoints.length) {
-        categories.push({ name: `${cat.toUpperCase()} API ENDPOINT`, items: endpoints });
+      try {
+        const stat = await fs.promises.stat(catPath);
+        if (!stat.isDirectory()) continue;
+        
+        const files = await fs.promises.readdir(catPath);
+        const endpoints = files.filter(f => f.endsWith('.js')).map(f => {
+          return {
+            name: `/${cat}/${f.replace(/\.js$/, '')}`,
+            path: `/api/${cat}/${f.replace(/\.js$/, '')}`,
+            desc: `/${cat}/${f.replace(/\.js$/, '')}`,
+            status: "ready",
+            params: {},
+            methods: ["GET"]
+          };
+        });
+        
+        if (endpoints.length) {
+          categories.push({ name: `${cat.toUpperCase()} API ENDPOINT`, items: endpoints });
+        }
+      } catch (err) {
+        // skip invalid directories
       }
     }
   } catch (e) {
-    // ignore
+    // api folder might not exist yet
   }
+  
   categories.push({
     name: "OTHER",
     items: [
       { name: "/apilist", path: "/api/apilist", desc: "/apilist", status: "ready", params: {}, methods: ["GET"] }
     ]
   });
+  
   return c.json({ categories });
 });
+
+/*
+ Dynamic mounting untuk semua file di folder api/<category>/<file>.js
+ Setiap file harus export default function (c) { ... }
+*/
+async function registerApiRoutes() {
+  const apiPath = path.join(process.cwd(), 'api');
+  try {
+    // Check if api folder exists
+    try {
+      await fs.promises.stat(apiPath);
+    } catch (e) {
+      console.log('API folder does not exist yet');
+      return;
+    }
+
+    const categories = await fs.promises.readdir(apiPath);
+    for (const cat of categories) {
+      const catPath = path.join(apiPath, cat);
+      try {
+        const stat = await fs.promises.stat(catPath);
+        if (!stat.isDirectory()) continue;
+        
+        const files = await fs.promises.readdir(catPath);
+        for (const file of files.filter(f => f.endsWith('.js'))) {
+          const routeName = path.basename(file, '.js');
+          const fullPath = path.join(catPath, file);
+          
+          try {
+            const mod = await import(`file://${fullPath}`);
+            const handler = mod.default;
+            
+            if (typeof handler === 'function') {
+              app.get(`/api/${cat}/${routeName}`, async (c) => {
+                try {
+                  return await handler(c);
+                } catch (e) {
+                  console.error(`Error in /api/${cat}/${routeName}:`, e);
+                  return c.json({ error: e.message || 'Internal error' }, 500);
+                }
+              });
+              console.log(`Registered: /api/${cat}/${routeName}`);
+            }
+          } catch (e) {
+            console.error(`Failed to load ${fullPath}:`, e);
+          }
+        }
+      } catch (err) {
+        console.error(`Error processing category ${cat}:`, err);
+      }
+    }
+  } catch (e) {
+    console.error('Error registering API routes:', e);
+  }
+}
 
 /*
  404 page: baca file 404.html jika ada
