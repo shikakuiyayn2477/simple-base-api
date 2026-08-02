@@ -1,6 +1,3 @@
-# Preview:
-<a href="https://simple-epiay.vercel.app/">https://simple-epiay.vercel.app/</a>
-
 # SIMPLE BASE API USING EXPRESS JS
 ---------
 ### 📃 T&Cs
@@ -34,79 +31,66 @@ const footer = "© SHIKAKU IYAYN AJAH";
 Just follow this code structure:
 # json result
 ```javascript
-const express = require('express'); // must be used
-const router = express.Router(); // must be used
-
-router.get('/', async (req, res) => {
-  const text = req.query.text; // for https://example.com/api?text=
-  if (!text) return res.status(400).json({ error: "Missing 'text' parameter" });
+// Each file must export a default async function handler(c)
+export default async function handler(c) {
+  const url = new URL(c.req.url);
+  const text = url.searchParams.get('text'); // for https://example.com/api?text=
+  if (!text) return c.json({ error: "Missing 'text' parameter" }, 400);
   try {
-// Your code
-const data = {
-      result: code result
+    // Your code
+    const data = {
+      result: `Processed: ${text}`
     };
-    return res.json(data); 
-} catch (e) {
-    return res.status(500).json({ error: e.message });
+    return c.json(data);
+  } catch (e) {
+    return c.json({ error: e.message }, 500);
   }
-});
-
-module.exports = router; // must be used
+}
 ````
 ## Example
 ```javascript
-// in api/downloader/videy.js
-const express = require('express');
-const router = express.Router();
-
-router.get('/', async (req, res) => {
-  const url = req.query.url;
-  if (!url) return res.status(400).json({ error: "Missing 'url' parameter" });
+// Converted example for api/downloader/videy.js (Hono / ESM)
+export default async function handler(c) {
+  const url = new URL(c.req.url);
+  const param = url.searchParams.get('url');
+  if (!param) return c.json({ error: "Missing 'url' parameter" }, 400);
   try {
-    const videoId = url.split("=")[1];
-    if (!videoId) return res.status(400).json({ error: "Invalid 'url' parameter" });
+    const videoId = param.split("=")[1];
+    if (!videoId) return c.json({ error: "Invalid 'url' parameter" }, 400);
     const anunyah = `https://cdn.videy.co/${videoId}.mp4`;
     const data = {
       fileurl: anunyah
     };
-    return res.json(data);
+    return c.json(data);
   } catch (e) {
-    return res.status(500).json({ error: e.message });
+    return c.json({ error: e.message }, 500);
   }
-});
-
-module.exports = router;
+}
 ```
 # for results in file form
 ```javascript
-const express = require('express'); // must be used
-const router = express.Router(); // must be used
+// Hono (ESM) example for returning binary file/buffer (image, mp4, etc.)
+import axios from 'axios';
 
-router.get('/', async (req, res) => {
-  const text = req.query.text; // for https://example.com/api?text=
-  if (!text) return res.status(400).json({ error: "Missing 'text' parameter" });
+export default async function handler(c) {
+  const url = new URL(c.req.url).searchParams.get('url');
+  if (!url) return c.json({ error: "Missing 'url' parameter" }, 400);
   try {
-// Your code
- const buffer = // buffer result from your code
-    res.writeHead(200, {
-                'Content-Type': 'mimetype-file'
-                'Content-Length': buffer.length,
-            });
-res.end(buffer);
- } catch (e) {
-    return res.status(500).json({ error: e.message });
+    // fetch remote file as arraybuffer
+    const resp = await axios.get(url, { responseType: 'arraybuffer' });
+    const buf = Buffer.from(resp.data);
+    c.header('Content-Type', 'image/png'); // set proper mimetype
+    return c.body(buf, 200);
+  } catch (e) {
+    return c.json({ error: e.message }, 500);
   }
-});
-
-module.exports = router; // must be used
+}
 ````
 ## Example:
 ```javascript
-// in api/tools/ssweb-hp.js
-const axios = require('axios');
-const fetch = require('node-fetch');
-const express = require('express');
-const router = express.Router();
+// Converted example for api/tools/ssweb-hp.js (Hono / ESM)
+// Uses axios to call screenshot service and to fetch the resulting image
+import axios from 'axios';
 
 async function ssweb(url, { width = 1280, height = 720, full_page = false, device_scale = 1 } = {}) {
     try {
@@ -135,23 +119,19 @@ async function ssweb(url, { width = 1280, height = 720, full_page = false, devic
     }
 }
 
-router.get('/', async (req, res) => {
-  const url = req.query.url;
-  if (!url) return res.status(400).json({ error: "Missing 'url' parameter" });
+export default async function handler(c) {
+  const url = new URL(c.req.url).searchParams.get('url');
+  if (!url) return c.json({ error: "Missing 'url' parameter" }, 400);
   try {
-    const resultpic = await ssweb(url, { width: 720, height: 1280 })
-    const buffernya = await fetch(resultpic).then((response) => response.buffer());
-res.writeHead(200, {
-                'Content-Type': 'image/png',
-                'Content-Length': buffernya.length,
-            });
-res.end(buffernya);
+    const resultpic = await ssweb(url, { width: 720, height: 1280 });
+    const resp = await axios.get(resultpic, { responseType: 'arraybuffer' });
+    const buffernya = Buffer.from(resp.data);
+    c.header('Content-Type', 'image/png');
+    return c.body(buffernya, 200);
   } catch (e) {
-    return res.status(500).json({ error: e.message });
+    return c.json({ error: e.message }, 500);
   }
-});
-
-module.exports = router;
+}
 ```
 -----
 
