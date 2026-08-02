@@ -35,9 +35,30 @@ async function sendFile(c, relPath, contentType) {
   }
 }
 
-app.use('/script.js', serveStatic({ path: './script.js' }));
-app.use('/styles.css', serveStatic({ path: './styles.css' }));
-app.use('/linkbio.json', serveStatic({ path: './linkbio.json' }));
+app.get('/script.js', async (c) => {
+  const filePath = join(process.cwd(), 'script.js')
+  const content = await readFile(filePath, 'utf-8')
+  
+  return c.text(content, 200, {
+    'Content-Type': 'application/javascript'
+  })
+})
+app.get('/styles.css', async (c) => {
+  const filePath = join(process.cwd(), 'styles.css')
+  const content = await readFile(filePath, 'utf-8')
+  
+  return c.text(content, 200, {
+    'Content-Type': 'application/javascript'
+  })
+})
+app.get('/linkbio.json', async (c) => {
+  const filePath = join(process.cwd(), 'linkbio.json')
+  const content = await readFile(filePath, 'utf-8')
+  
+  return c.text(content, 200, {
+    'Content-Type': 'application/javascript'
+  })
+})
 
 /*
  Halaman utama: inline HTML
