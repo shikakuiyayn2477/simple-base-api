@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+import { serve } from '@hono/node-server';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -38,7 +39,7 @@ app.get('/styles.css', (c) => sendFile(c, 'styles.css', 'text/css; charset=utf-8
 app.get('/linkbio.json', (c) => sendFile(c, 'linkbio.json', 'application/json; charset=utf-8'));
 
 /*
- Halaman utama: saya pertahankan HTML sama persis dengan yang semula (inline)
+ Halaman utama: inline HTML
 */
 app.get('/', async (c) => {
   const html = `<!DOCTYPE html>
@@ -164,7 +165,7 @@ app.get('/', async (c) => {
 
 /*
  Dynamic mounting untuk semua file di folder api/<category>/<file>.js
- Setiap file harus export default function (c) { ... } — lihat contoh-converted di bawah.
+ Setiap file harus export default function (c) { ... }
 */
 async function registerApiRoutes() {
   const apiPath = path.join(process.cwd(), 'api');
@@ -201,7 +202,7 @@ async function registerApiRoutes() {
 }
 
 /*
- /api/apilist : mengambil daftar file dan membuat list mirip implementasi Express sebelumnya
+ /api/apilist : mengambil daftar file dan membuat list
 */
 app.get('/api/apilist', async (c) => {
   const apiPath = path.join(process.cwd(), 'api');
@@ -253,12 +254,15 @@ app.notFound(async (c) => {
 });
 
 /*
- Daftarkan route API dinamis kemudian start server
+ Daftarkan route API dinamis kemudian start server menggunakan @hono/node-server
 */
 await registerApiRoutes();
 
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+serve({
+  fetch: app.fetch,
+  port: Number(PORT)
+}, (info) => {
+  console.log(`Server running on http://localhost:${info.port}`);
 });
 
 export default app;
