@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import { serve } from '@hono/node-server';
+import { serveStatic } from '@hono/node-server/serve-static';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -34,9 +35,9 @@ async function sendFile(c, relPath, contentType) {
   }
 }
 
-app.get('/script.js', (c) => sendFile(c, 'script.js', 'application/javascript; charset=utf-8'));
-app.get('/styles.css', (c) => sendFile(c, 'styles.css', 'text/css; charset=utf-8'));
-app.get('/linkbio.json', (c) => sendFile(c, 'linkbio.json', 'application/json; charset=utf-8'));
+app.use('/script.js', serveStatic({ path: './script.js' }));
+app.use('/styles.css', serveStatic({ path: './styles.css' }));
+app.use('/linkbio.json', serveStatic({ path: './linkbio.json' }));
 
 /*
  Halaman utama: inline HTML
