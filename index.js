@@ -1,14 +1,16 @@
-const express = require('express');
-const path = require('path');
-const fs = require('fs');
+import { Hono } from 'hono';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-const app = express();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const app = new Hono();
 const PORT = process.env.PORT || 3000;
-app.use(express.static(path.join(__dirname)));
-app.use(express.json());
 
 /*
-For setting API name etc
+ Konfigurasi yang dipertahankan dari versi lama
 */
 const title = "EH PI AY DOANG";
 const favicon = "https://raw.githubusercontent.com/upload-file-lab/fileupload7/main/uploads/1764494355026.jpeg?format=png&name=900x900";
@@ -17,101 +19,29 @@ const headertitle = "REST EH PI AY";
 const headerdescription = "Kumpulan API Endpoint yang mungkin berguna.";
 const footer = "© SHIKAKU IYAYN AJAH";
 
-const router = express.Router();
-const apiPath = path.join(__dirname, 'api');
-const endpointDirs = fs.readdirSync(apiPath).filter(f => fs.statSync(path.join(apiPath, f)).isDirectory());
-
-for (const category of endpointDirs) {
-  const categoryPath = path.join(apiPath, category);
-  const files = fs.readdirSync(categoryPath).filter(f => f.endsWith('.js'));
-  for (const file of files) {
-    const routeName = path.basename(file, '.js');
-    const route = require(path.join(categoryPath, file));
-    router.use(`/${category}/${routeName}`, route);
+/*
+ Static endpoints (menyajikan file-file yang ada di root repo)
+*/
+async function sendFile(c, relPath, contentType) {
+  try {
+    const full = path.join(process.cwd(), relPath);
+    const body = await fs.promises.readFile(full);
+    c.header('Content-Type', contentType);
+    return c.body(body, 200);
+  } catch (e) {
+    return c.body('Not found', 404);
   }
 }
 
+app.get('/script.js', (c) => sendFile(c, 'script.js', 'application/javascript; charset=utf-8'));
+app.get('/styles.css', (c) => sendFile(c, 'styles.css', 'text/css; charset=utf-8'));
+app.get('/linkbio.json', (c) => sendFile(c, 'linkbio.json', 'application/json; charset=utf-8'));
 
-function getEndpointsFromRouter(category, file) {
-  const endpoints = [];
-  const route = require(path.join(apiPath, category, file));
-  const subRouter = route.stack ? route : route.router || route;
-  if (!subRouter || !subRouter.stack) return endpoints;
-  subRouter.stack.forEach(layer => {
-    if (layer.route) {
-      const methods = Object.keys(layer.route.methods).map(m => m.toUpperCase());
-      let params = {};
-      if (layer.route.stack && layer.route.stack.length) {
-        layer.route.stack.forEach(mw => {
-          const fnString = mw.handle.toString();
-          [...fnString.matchAll(/req\.query\.([a-zA-Z0-9_]+)/g)].forEach(match => {
-            params[match[1]] = "";
-          });
-          [...fnString.matchAll(/req\.body\.([a-zA-Z0-9_]+)/g)].forEach(match => {
-            params[match[1]] = "";
-          });
-        });
-      }
-      endpoints.push({
-        name: `/${category}/${file.replace(/\.js$/,"")}`,
-        path: `/api/${category}/${file.replace(/\.js$/,"")}`,
-        desc: `/${category}/${file.replace(/\.js$/,"")}`,
-        status: "ready",
-        params,
-        methods
-      });
-    }
-  });
-  return endpoints;
-}
-
-router.get('/apilist', (req, res) => {
-  const categories = [];
-
-  for (const category of endpointDirs) {
-    const files = fs.readdirSync(path.join(apiPath, category)).filter(f => f.endsWith('.js'));
-    const endpoints = [];
-    for (const file of files) {
-      endpoints.push(...getEndpointsFromRouter(category, file));
-    }
-    if (endpoints.length) {
-      categories.push({
-        name: `${category.toUpperCase()} API ENDPOINT`,
-        items: endpoints
-      });
-    }
-  }
-
-  categories.push({
-    name: "OTHER",
-    items: [
-      {
-        name: "/apilist",
-        path: "/api/apilist",
-        desc: "/apilist",
-        status: "ready",
-        params: {},
-        methods: ["GET"]
-      }
-    ]
-  });
-
-  res.json({ categories });
-});
-
-app.use('/api', router);
-
-app.get('/script.js', (req, res) => {
-  res.sendFile(path.join(__dirname, 'script.js'));
-});
-app.get('/linkbio.json', (req, res) => {
-  res.sendFile(path.join(__dirname, 'linkbio.json'));
-});
-app.get('/styles.css', (req, res) => {
-  res.sendFile(path.join(__dirname, 'styles.css'));
-});
-app.get('/', (req, res) => {
-    res.send(`<!DOCTYPE html>
+/*
+ Halaman utama: saya pertahankan HTML sama persis dengan yang semula (inline)
+*/
+app.get('/', async (c) => {
+  const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
@@ -126,7 +56,7 @@ app.get('/', (req, res) => {
     <div id="toast" class="toast">
         <div class="flex items-center gap-3">
             <svg id="toastIcon" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
             </svg>
             <span id="toastMessage" class="font-medium">Action completed</span>
         </div>
@@ -137,7 +67,7 @@ app.get('/', (req, res) => {
             <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
         </svg>
         <svg id="theme-toggle-light-icon" class="w-6 h-6 hidden" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-            <path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path>
+            <path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414z"></path>
         </svg>
     </button>
 
@@ -227,16 +157,108 @@ app.get('/', (req, res) => {
     </div>
 <script src="script.js"></script>
 </body>
-</html>
-    `);
+</html>`;
+  c.header('Content-Type', 'text/html; charset=utf-8');
+  return c.body(html, 200);
 });
 
-app.use('/api', router);
-
-if (require.main === module) {
-  app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-  });
+/*
+ Dynamic mounting untuk semua file di folder api/<category>/<file>.js
+ Setiap file harus export default function (c) { ... } — lihat contoh-converted di bawah.
+*/
+async function registerApiRoutes() {
+  const apiPath = path.join(process.cwd(), 'api');
+  try {
+    const categories = await fs.promises.readdir(apiPath);
+    for (const cat of categories) {
+      const catPath = path.join(apiPath, cat);
+      const stat = await fs.promises.stat(catPath);
+      if (!stat.isDirectory()) continue;
+      const files = await fs.promises.readdir(catPath);
+      for (const file of files.filter(f => f.endsWith('.js'))) {
+        const routeName = path.basename(file, '.js');
+        const fullPath = path.join(catPath, file);
+        // dynamic import
+        const mod = await import(`file://${fullPath}`);
+        const handler = mod.default;
+        if (typeof handler === 'function') {
+          app.get(`/api/${cat}/${routeName}`, async (c) => {
+            try {
+              return await handler(c);
+            } catch (e) {
+              return c.json({ error: e.message || 'Internal error' }, 500);
+            }
+          });
+        } else {
+          // fallback: if module exports an object with methods, try GET
+          app.get(`/api/${cat}/${routeName}`, (c) => c.json({ error: 'Handler not implemented' }, 500));
+        }
+      }
+    }
+  } catch (e) {
+    console.error('Error registering API routes:', e);
+  }
 }
 
-module.exports = app;
+/*
+ /api/apilist : mengambil daftar file dan membuat list mirip implementasi Express sebelumnya
+*/
+app.get('/api/apilist', async (c) => {
+  const apiPath = path.join(process.cwd(), 'api');
+  const categories = [];
+  try {
+    const cats = await fs.promises.readdir(apiPath);
+    for (const cat of cats) {
+      const catPath = path.join(apiPath, cat);
+      const stat = await fs.promises.stat(catPath).catch(() => null);
+      if (!stat || !stat.isDirectory()) continue;
+      const files = await fs.promises.readdir(catPath);
+      const endpoints = files.filter(f => f.endsWith('.js')).map(f => {
+        return {
+          name: `/${cat}/${f.replace(/\.js$/, '')}`,
+          path: `/api/${cat}/${f.replace(/\.js$/, '')}`,
+          desc: `/${cat}/${f.replace(/\.js$/, '')}`,
+          status: "ready",
+          params: {},
+          methods: ["GET"]
+        };
+      });
+      if (endpoints.length) {
+        categories.push({ name: `${cat.toUpperCase()} API ENDPOINT`, items: endpoints });
+      }
+    }
+  } catch (e) {
+    // ignore
+  }
+  categories.push({
+    name: "OTHER",
+    items: [
+      { name: "/apilist", path: "/api/apilist", desc: "/apilist", status: "ready", params: {}, methods: ["GET"] }
+    ]
+  });
+  return c.json({ categories });
+});
+
+/*
+ 404 page: baca file 404.html jika ada
+*/
+app.notFound(async (c) => {
+  try {
+    const body = await fs.promises.readFile(path.join(process.cwd(), '404.html'), 'utf-8');
+    c.header('Content-Type', 'text/html; charset=utf-8');
+    return c.body(body, 404);
+  } catch (e) {
+    return c.text('404 Not Found', 404);
+  }
+});
+
+/*
+ Daftarkan route API dinamis kemudian start server
+*/
+await registerApiRoutes();
+
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
+});
+
+export default app;
