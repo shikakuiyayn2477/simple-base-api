@@ -15,12 +15,12 @@
     "file-type": "^16.5.3",
     "form-data": "^4.0.0",
     "formdata-node": "^6.0.3",
+    "hono": "^3.0.0",
     "jsdom": "^20.0.0",
     "mime-types": "^2.1.35",
     "node-fetch": "^2.6.9",
     "path": "^0.12.7",
     "querystring": "^0.2.1",
-    "uuid": "^13.0.0",
-    "hono": "^3.0.0"
+    "uuid": "^13.0.0"
   }
 }
